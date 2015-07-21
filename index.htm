@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=utf-8 />
+    <meta name=description content="Datashow is a one-pager that displays the images of a computer-vision dataset as a slideshow." />
+    <meta name=author content="Lucas Beyer" />
+
+    <!-- http://davidbcalhoun.com/2010/viewport-metatag/ -->
+    <meta name=viewport content="width=device-width,initial-scale=1.0" />
+
+    <style>
+        html {
+            background-color: black;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        footer#label {
+            position: fixed;
+            bottom: 1%;
+            width: 100%;
+            z-index: 10;
+
+            text-align: center;
+            font-size: 2em;
+            color: white;
+            /* Simulates stroke, because text-stroke is not standard. */
+            text-shadow: #000 0px 0px 5px,
+                         #000 0px 0px 5px,
+                         #000 0px 0px 5px,
+                         #000 0px 0px 5px,
+                         #000 0px 0px 5px,
+                         #000 0px 0px 5px,
+                         #000 0px 0px 5px,
+                         #000 0px 0px 5px,
+                         #000 0px 0px 5px;
+        }
+
+        #curr, #next, #load {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+
+            transition: opacity 2s ease-in-out;
+        }
+
+        /* Initial conditions. */
+        #curr { opacity: 1; }
+        #next, #load { opacity: 0; }
+    </style>
+
+    <title>Datashow - Displaying datasets since 2015</title>
+</head>
+<body>
+    <div id=curr></div>
+    <div id=next></div>
+    <div id=load></div>
+
+    <footer id=label>Label</footer>
+
+    <script src=dataset.js></script>
+    <script>
+// <Settings>
+////////////////////////////////
+var folder = "/home/beyer/.config/wallpapers/src/"
+var showtime = 5000
+var fadetime = 2000
+// </Settings>
+////////////////////////////////
+
+var buffers = [
+    document.getElementById('curr'),
+    document.getElementById('next'),
+    document.getElementById('load'),
+]
+
+function cycle(arr) {
+    arr.push(arr.shift())
+}
+
+// Initial conditions:
+var img = 0
+buffers[0].style.backgroundImage = "url(" + folder + dataset[img].file + ")"
+buffers[1].style.backgroundImage = "url(" + folder + dataset[img+1].file + ")"
+document.getElementById('label').innerHTML = dataset[img].label
+
+if(folder.slice(-1) != '/')
+    folder += '/'
+
+function nextimage() {
+    buffers[1].style.zIndex = 2
+    buffers[0].style.zIndex = 1
+    buffers[2].style.zIndex = 0
+
+    buffers[1].style.opacity = 1
+    buffers[0].style.opacity = 0
+
+    img = (img + 1) % dataset.length
+    console.log(dataset[img].file)
+
+    window.setTimeout(function() {
+        document.getElementById('label').innerHTML = dataset[img].label
+    }, fadetime/2)
+
+    buffers[2].style.backgroundImage = "url(" + folder + dataset[(img + 1) % dataset.length].file + ")"
+    cycle(buffers)
+}
+
+tid = window.setInterval(nextimage, showtime + fadetime)
+window.addEventListener('click', function(e) {
+    window.clearInterval(tid)
+    nextimage()
+    tid = window.setInterval(nextimage, showtime + fadetime)
+})
+    </script>
+</body>
+</html>
